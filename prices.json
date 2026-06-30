@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "currency": "AZN",
+    "currencySymbol": "₼",
+    "lastUpdated": "2026-07-01",
+    "version": "1.0.0",
+    "note": "Bütün qiymətlər təxmini bazar dəyərləridir. Bu fayl istənilən zaman redaktə edilə bilər — kodu dəyişmək lazım deyil."
+  },
+
+  "baseRatePerM2": {
+    "yaşayış (mənzil tipli)": 620,
+    "fərdi ev (villa)": 780,
+    "ofis binası": 710,
+    "kommersiya / mağaza": 690,
+    "anbar / sənaye": 480,
+    "qarisma (mixed-use)": 740
+  },
+
+  "finishLevels": {
+    "ekonom": { "label": "Ekonom", "multiplier": 0.82, "description": "Büdcəli materiallar, sadə tamamlama" },
+    "standart": { "label": "Standart", "multiplier": 1.0, "description": "Orta səviyyəli materiallar, keyfiyyətli tamamlama" },
+    "premium": { "label": "Premium", "multiplier": 1.45, "description": "Yüksək keyfiyyətli materiallar, dizayner tamamlama" }
+  },
+
+  "foundationTypes": {
+    "lentvari (zolaq)": { "label": "Lentvari (zolaq) təməl", "multiplier": 1.0 },
+    "plitə": { "label": "Plitə təməl", "multiplier": 1.18 },
+    "svaylı (pile)": { "label": "Svaylı (pile) təməl", "multiplier": 1.35 },
+    "sütunlu": { "label": "Sütunlu təməl", "multiplier": 0.9 }
+  },
+
+  "roofTypes": {
+    "düz dam": { "label": "Düz dam (flat roof)", "multiplier": 1.0 },
+    "maili dam (şifer/profnastil)": { "label": "Maili dam – şifer/profnastil", "multiplier": 1.08 },
+    "metal çərpici": { "label": "Metal çərpici dam", "multiplier": 1.22 },
+    "kərpic kirəmit": { "label": "Kirəmit dam", "multiplier": 1.35 }
+  },
+
+  "cityMultipliers": {
+    "Bakı": 1.25,
+    "Sumqayıt": 1.05,
+    "Gəncə": 0.92,
+    "Mingəçevir": 0.88,
+    "Şirvan": 0.86,
+    "Naxçıvan": 0.9,
+    "Şəki": 0.85,
+    "Lənkəran": 0.87,
+    "Quba": 0.83,
+    "Other / Digər": 0.8
+  },
+
+  "floorMultiplier": {
+    "base": 1.0,
+    "perExtraFloor": 0.035,
+    "note": "Hər əlavə mərtəbə üçün ümumi tikinti dəyərinə +3.5% (konstruksiya gücləndirilməsi səbəbiylə)"
+  },
+
+  "landPricePerM2ByCity": {
+    "Bakı": 850,
+    "Sumqayıt": 320,
+    "Gəncə": 180,
+    "Mingəçevir": 140,
+    "Şirvan": 130,
+    "Naxçıvan": 160,
+    "Şəki": 150,
+    "Lənkəran": 170,
+    "Quba": 145,
+    "Other / Digər": 100
+  },
+
+  "costBreakdownPercentages": {
+    "excavation": 0.025,
+    "foundation": 0.09,
+    "concrete": 0.085,
+    "reinforcement": 0.07,
+    "masonry": 0.085,
+    "columnsBeams": 0.06,
+    "roof": 0.065,
+    "doorsWindows": 0.07,
+    "electrical": 0.06,
+    "plumbing": 0.055,
+    "hvac": 0.05,
+    "interiorFinishing": 0.16,
+    "exteriorFinishing": 0.09,
+    "landscaping": 0.025,
+    "contingency": 0.06
+  },
+
+  "materialQuantitiesPerM2": {
+    "concreteM3": 0.42,
+    "rebarTon": 0.045,
+    "cementBags": 6.2,
+    "sandM3": 0.32,
+    "gravelM3": 0.28,
+    "brickPcs": 95,
+    "paintLiters": 0.55,
+    "tilesM2": 0.85,
+    "steelKg": 18,
+    "waterproofingM2": 0.6
+  },
+
+  "materialUnitPrices": {
+    "concreteM3": 95,
+    "rebarTon": 1850,
+    "cementBags": 9.5,
+    "sandM3": 22,
+    "gravelM3": 26,
+    "brickPcs": 0.42,
+    "paintLiters": 7.8,
+    "tilesM2": 14.5,
+    "steelKg": 2.6,
+    "waterproofingM2": 8.2
+  },
+
+  "materialUnits": {
+    "concreteM3": "m³",
+    "rebarTon": "ton",
+    "cementBags": "kisə",
+    "sandM3": "m³",
+    "gravelM3": "m³",
+    "brickPcs": "ədəd",
+    "paintLiters": "litr",
+    "tilesM2": "m²",
+    "steelKg": "kq",
+    "waterproofingM2": "m²"
+  }
+}
