@@ -12,44 +12,61 @@
   const fmtNum = (n) => Math.round(n).toLocaleString("az-AZ").replace(/,/g, " ");
 
   /* ----------------------------- Init ----------------------------- */
-  document.addEventListener("DOMContentLoaded", async () => {
-    initYear();
-    initDarkMode();
-    initMobileNav();
-    initScrollAnimations();
-    initSmoothAnchors();
 
+  // Safety net: no matter what fails below, never leave the loader spinning
+  // forever. If init hasn't finished in 4s, force it away so the page is
+  // at least usable/visible for debugging.
+  const forceHideTimer = setTimeout(() => {
+    console.warn("IndustrCons: init timeout — forcing loader hidden.");
+    hideLoader();
+  }, 4000);
+
+  document.addEventListener("DOMContentLoaded", async () => {
     try {
+      initYear();
+      initDarkMode();
+      initMobileNav();
+      initScrollAnimations();
+      initSmoothAnchors();
+
+      const form = document.getElementById("calculatorForm");
+      if (form) form.addEventListener("submit", onCalculate);
+
+      const cityEl = document.getElementById("city");
+      if (cityEl) cityEl.addEventListener("change", prefillLandPrice);
+
+      const includeLandEl = document.getElementById("includeLand");
+      if (includeLandEl) includeLandEl.addEventListener("change", toggleLandPriceField);
+
+      const pdfBtn = document.getElementById("downloadPdfBtn");
+      if (pdfBtn) pdfBtn.addEventListener("click", onDownloadPdf);
+
+      const resetBtn = document.getElementById("resetBtn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          document.getElementById("calculatorForm").reset();
+          prefillLandPrice();
+        });
+      }
+
+      if (!window.ICCalculator) {
+        throw new Error("calculator.js yüklənməyib (fayl tapılmadı və ya adı yanlışdır)");
+      }
+
       prices = await window.ICCalculator.loadPrices();
       populateSelect("buildingType", Object.keys(prices.baseRatePerM2));
       populateSelect("finishLevel", Object.keys(prices.finishLevels), (k) => prices.finishLevels[k].label);
       populateSelect("foundationType", Object.keys(prices.foundationTypes), (k) => prices.foundationTypes[k].label);
       populateSelect("roofType", Object.keys(prices.roofTypes), (k) => prices.roofTypes[k].label);
       populateSelect("city", Object.keys(prices.cityMultipliers));
-      hideLoader();
       prefillLandPrice();
     } catch (err) {
-      showToast("Qiymət bazası yüklənərkən xəta baş verdi: " + err.message, "error");
+      console.error("IndustrCons init error:", err);
+      showToast("Xəta: " + err.message, "error");
+    } finally {
+      clearTimeout(forceHideTimer);
       hideLoader();
     }
-
-    const form = document.getElementById("calculatorForm");
-    if (form) form.addEventListener("submit", onCalculate);
-
-    const cityEl = document.getElementById("city");
-    if (cityEl) cityEl.addEventListener("change", prefillLandPrice);
-
-    const includeLandEl = document.getElementById("includeLand");
-    if (includeLandEl) includeLandEl.addEventListener("change", toggleLandPriceField);
-
-    const pdfBtn = document.getElementById("downloadPdfBtn");
-    if (pdfBtn) pdfBtn.addEventListener("click", onDownloadPdf);
-
-    const resetBtn = document.getElementById("resetBtn");
-    if (resetBtn) resetBtn.addEventListener("click", () => {
-      document.getElementById("calculatorForm").reset();
-      prefillLandPrice();
-    });
   });
 
   function initYear() {
