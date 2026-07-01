@@ -14,6 +14,24 @@
     grayText: [74, 85, 104]
   };
 
+  // jsPDF's built-in fonts (Helvetica/Times/Courier) only support WinAnsi
+  // encoding and DO NOT include Azerbaijani letters (ə, ı, ş, ç, ö, ü, ğ).
+  // Rather than showing broken/garbled glyphs, we transliterate to the
+  // closest readable ASCII equivalent for anything placed in the PDF.
+  const AZ_TO_ASCII = {
+    ə: "e", Ə: "E",
+    ı: "i", İ: "I",
+    ö: "o", Ö: "O",
+    ü: "u", Ü: "U",
+    ş: "s", Ş: "S",
+    ç: "c", Ç: "C",
+    ğ: "g", Ğ: "G"
+  };
+  function pdfSafe(str) {
+    if (str === null || str === undefined) return "";
+    return String(str).replace(/[əƏıİöÖüÜşŞçÇğĞ]/g, (ch) => AZ_TO_ASCII[ch] || ch);
+  }
+
   function fmtMoney(n, symbol) {
     return (
       Math.round(n)
@@ -68,14 +86,14 @@
     doc.text(BRAND.name, margin, 13);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(BRAND.tagline, margin, 19);
+    doc.text(pdfSafe(BRAND.tagline), margin, 19);
     doc.setFontSize(8);
     doc.text("www.industrcons.az", margin, 24);
 
     const dateStr = new Date(result.generatedAt).toLocaleDateString("az-AZ");
     doc.setFontSize(9);
-    doc.text(`Tarix: ${dateStr}`, pageWidth - margin, 13, { align: "right" });
-    doc.text("Smeta hesabatı", pageWidth - margin, 19, { align: "right" });
+    doc.text(pdfSafe(`Tarix: ${dateStr}`), pageWidth - margin, 13, { align: "right" });
+    doc.text(pdfSafe("Smeta hesabatı"), pageWidth - margin, 19, { align: "right" });
 
     y = 38;
     doc.setTextColor(20, 20, 20);
@@ -83,7 +101,7 @@
     // ---- Customer info ----
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Müştəri Məlumatları", margin, y);
+    doc.text(pdfSafe("Müştəri Məlumatları"), margin, y);
     y += 6;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -95,9 +113,9 @@
     ];
     customerLines.forEach(([label, val]) => {
       doc.setTextColor(...BRAND.grayText);
-      doc.text(label, margin, y);
+      doc.text(pdfSafe(label), margin, y);
       doc.setTextColor(20, 20, 20);
-      doc.text(String(val), margin + 32, y);
+      doc.text(pdfSafe(val), margin + 32, y);
       y += 5.5;
     });
 
@@ -106,13 +124,13 @@
     // ---- Building info ----
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Bina Məlumatları", margin, y);
+    doc.text(pdfSafe("Bina Məlumatları"), margin, y);
     y += 6;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     const inp = result.input;
     const buildingLines = [
-      ["Sahə:", `${inp.area} m² × ${inp.floors} mərtəbə = ${result.totalBuildingArea} m²`],
+      ["Sahə:", `${inp.area} m² x ${inp.floors} mərtəbə = ${result.totalBuildingArea} m²`],
       ["Bina növü:", inp.buildingType],
       ["Tamamlama səviyyəsi:", inp.finishLevel],
       ["Təməl növü:", inp.foundationType],
@@ -121,9 +139,9 @@
     ];
     buildingLines.forEach(([label, val]) => {
       doc.setTextColor(...BRAND.grayText);
-      doc.text(label, margin, y);
+      doc.text(pdfSafe(label), margin, y);
       doc.setTextColor(20, 20, 20);
-      doc.text(String(val), margin + 45, y);
+      doc.text(pdfSafe(val), margin + 45, y);
       y += 5.5;
     });
 
@@ -135,13 +153,13 @@
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(...BRAND.color);
-    doc.text("Ümumi Təxmini Dəyər", margin + 4, y + 8);
+    doc.text(pdfSafe("Ümumi Təxmini Dəyər"), margin + 4, y + 8);
     doc.setFontSize(15);
-    doc.text(fmtMoney(result.grandTotal, result.currencySymbol), margin + 4, y + 17);
+    doc.text(fmtMoney(result.grandTotal, "AZN"), margin + 4, y + 17);
     doc.setFontSize(10);
     doc.setTextColor(...BRAND.grayText);
     doc.text(
-      `m² başına: ${fmtMoney(result.costPerM2, result.currencySymbol)}`,
+      pdfSafe(`m² başına: ${fmtMoney(result.costPerM2, "AZN")}`),
       pageWidth - margin - 4,
       y + 12,
       { align: "right" }
@@ -152,7 +170,7 @@
     doc.setTextColor(20, 20, 20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Xərc Bölgüsü", margin, y);
+    doc.text(pdfSafe("Xərc Bölgüsü"), margin, y);
     y += 6;
 
     const labels = global.ICCalculator.BREAKDOWN_LABELS_AZ;
@@ -164,9 +182,9 @@
         y = 20;
       }
       doc.setTextColor(...BRAND.grayText);
-      doc.text(labels[key] || key, margin, y);
+      doc.text(pdfSafe(labels[key] || key), margin, y);
       doc.setTextColor(20, 20, 20);
-      doc.text(fmtMoney(val, result.currencySymbol), pageWidth - margin, y, { align: "right" });
+      doc.text(fmtMoney(val, "AZN"), pageWidth - margin, y, { align: "right" });
       y += 5.2;
     });
 
@@ -179,7 +197,7 @@
     // ---- Materials table ----
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Material Siyahısı", margin, y);
+    doc.text(pdfSafe("Material Siyahısı"), margin, y);
     y += 6;
     const mLabels = global.ICCalculator.MATERIAL_LABELS_AZ;
     doc.setFontSize(9);
@@ -190,10 +208,10 @@
         y = 20;
       }
       doc.setTextColor(...BRAND.grayText);
-      doc.text(mLabels[key] || key, margin, y);
+      doc.text(pdfSafe(mLabels[key] || key), margin, y);
       doc.setTextColor(20, 20, 20);
-      doc.text(`${m.quantity.toFixed(1)} ${m.unit}`, margin + 80, y);
-      doc.text(fmtMoney(m.totalPrice, result.currencySymbol), pageWidth - margin, y, {
+      doc.text(pdfSafe(`${m.quantity.toFixed(1)} ${m.unit}`), margin + 80, y);
+      doc.text(fmtMoney(m.totalPrice, "AZN"), pageWidth - margin, y, {
         align: "right"
       });
       y += 5.2;
@@ -209,21 +227,23 @@
     if (customer.notes) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text("Qeydlər", margin, y);
+      doc.text(pdfSafe("Qeydlər"), margin, y);
       y += 5.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      const noteLines = doc.splitTextToSize(customer.notes, pageWidth - margin * 2 - 40);
+      const noteLines = doc.splitTextToSize(pdfSafe(customer.notes), pageWidth - margin * 2 - 40);
       doc.text(noteLines, margin, y);
       y += noteLines.length * 4.5 + 6;
     }
 
     // ---- QR code ----
     try {
-      const qrText = `IndustrCons Smeta | ${customer.projectName || "Layihə"} | ${fmtMoney(
-        result.grandTotal,
-        result.currencySymbol
-      )} | ${dateStr}`;
+      const qrText = pdfSafe(
+        `IndustrCons Smeta | ${customer.projectName || "Layihə"} | ${fmtMoney(
+          result.grandTotal,
+          "AZN"
+        )} | ${dateStr}`
+      );
       const qrDataUrl = await generateQrDataUrl(qrText);
       if (qrDataUrl) {
         if (y > 240) {
@@ -233,7 +253,7 @@
         doc.addImage(qrDataUrl, "PNG", pageWidth - margin - 28, y, 28, 28);
         doc.setFontSize(7.5);
         doc.setTextColor(...BRAND.grayText);
-        doc.text("Hesabat təsdiqi", pageWidth - margin - 28, y + 32);
+        doc.text(pdfSafe("Hesabat təsdiqi"), pageWidth - margin - 28, y + 32);
       }
     } catch (e) {
       console.warn("QR kod yaradıla bilmədi:", e);
@@ -243,8 +263,9 @@
     const disclaimerY = 285;
     doc.setFontSize(7);
     doc.setTextColor(140, 140, 140);
-    const disclaimer =
-      "Qeyd: Bu sənəd yalnız təxmini smeta xarakteri daşıyır. Real qiymətlər material bazarı, podratçı və layihə xüsusiyyətlərindən asılı olaraq dəyişə bilər. IndustrCons rəsmi müqavilə öhdəliyi deyil.";
+    const disclaimer = pdfSafe(
+      "Qeyd: Bu sənəd yalnız təxmini smeta xarakteri daşıyır. Real qiymətlər material bazarı, podratçı və layihə xüsusiyyətlərindən asılı olaraq dəyişə bilər. IndustrCons rəsmi müqavilə öhdəliyi deyil."
+    );
     const discLines = doc.splitTextToSize(disclaimer, pageWidth - margin * 2);
     doc.text(discLines, margin, disclaimerY);
 
