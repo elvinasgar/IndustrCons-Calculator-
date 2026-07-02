@@ -60,6 +60,26 @@
       populateSelect("roofType", Object.keys(prices.roofTypes), (k) => prices.roofTypes[k].label);
       populateSelect("city", Object.keys(prices.cityMultipliers));
       prefillLandPrice();
+
+      // New modules — each is defensive (checks window.ICxxx exists) so a
+      // missing/failed module never breaks the rest of the page.
+      if (window.ICWizard) window.ICWizard.init();
+      if (window.ICAssistant) window.ICAssistant.init();
+      if (window.ICMaterials) {
+        window.ICMaterials.renderMaterialPriceCenter(
+          document.getElementById("materialPriceCenter"),
+          prices
+        );
+      }
+      renderTrustStrip();
+      renderSavedProjects();
+
+      const saveBtn = document.getElementById("saveProjectBtn");
+      if (saveBtn) saveBtn.addEventListener("click", onSaveProject);
+      const shareBtn = document.getElementById("shareLinkBtn");
+      if (shareBtn) shareBtn.addEventListener("click", onShareLink);
+
+      prefillFromShareLink();
     } catch (err) {
       console.error("IndustrCons init error:", err);
       showToast("Xəta: " + err.message, "error");
@@ -233,9 +253,23 @@
     setTimeout(() => {
       try {
         const result = window.ICCalculator.estimate(input, prices);
+
+        // Attach extra report data to the result object so the PDF report
+        // (pdf.js) can reuse the exact same numbers shown on screen.
+        result.assumptions = window.ICCalculator.getAssumptions(input, prices, result);
+        result.timeline = window.ICTimeline ? window.ICTimeline.generateTimeline(result) : null;
+        result.optimizerSuggestions = window.ICOptimizer
+          ? window.ICOptimizer.getSavingsSuggestions(input, prices, result)
+          : [];
+        result.pricesVersion = prices.meta.version;
+
         lastResult = result;
         renderResults(result);
         renderCharts(result);
+        renderAccuracy(result);
+        renderTimeline(result);
+        renderOptimizer(result);
+        if (window.ICWizard) window.ICWizard.markResultReached();
         document.getElementById("resultsSection").classList.add("is-visible");
         document.getElementById("resultsSection").scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
@@ -340,5 +374,201 @@
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
+  }
+  /* ----------------------------- Engineering Accuracy ----------------------------- */
+  function renderAccuracy(result) {
+    const symbol = result.currencySymbol;
+    const low = document.getElementById("rangeLow");
+    const mid = document.getElementById("rangeMid");
+    const high = document.getElementById("rangeHigh");
+    if (low) low.textContent = fmtNum(result.rangeLow) + " " + symbol;
+    if (mid) mid.textContent = fmtNum(result.grandTotal) + " " + symbol;
+    if (high) high.textContent = fmtNum(result.rangeHigh) + " " + symbol;
+
+    const list = document.getElementById("assumptionsList");
+    if (list && Array.isArray(result.assumptions)) {
+      list.innerHTML = result.assumptions.map((a) => `<li>${a}</li>`).join("");
+    }
+  }
+
+  /* ----------------------------- Construction Timeline ----------------------------- */
+  function renderTimeline(result) {
+    const listEl = document.getElementById("timelineList");
+    const tagEl = document.getElementById("timelineTotalTag");
+    if (!listEl || !result.timeline) return;
+
+    tagEl.textContent = `~${result.timeline.totalMonths} ay`;
+
+    listEl.innerHTML = result.timeline.phases
+      .map((p) => {
+        const widthPct = Math.max(4, (p.weeks / result.timeline.totalWeeks) * 100);
+        return `
+          <div class="timeline-phase">
+            <div class="timeline-phase-info">
+              <span class="timeline-phase-name">${p.label}</span>
+              <span class="timeline-phase-weeks">${p.weeks} həftə (${p.startWeek}–${p.endWeek})</span>
+            </div>
+            <div class="timeline-bar-track">
+              <div class="timeline-bar-fill" style="width:${widthPct}%;"></div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  /* ----------------------------- Budget Optimizer ----------------------------- */
+  function renderOptimizer(result) {
+    const listEl = document.getElementById("optimizerList");
+    if (!listEl) return;
+
+    const suggestions = result.optimizerSuggestions || [];
+    if (!suggestions.length) {
+      listEl.innerHTML = `<p class="text-muted" style="font-size:0.9rem;">Hazırkı seçimləriniz artıq ən büdcəli variantdır — əlavə qənaət tövsiyəsi yoxdur.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = suggestions
+      .map(
+        (s) => `
+        <div class="optimizer-card">
+          <div class="optimizer-card-header">
+            <span>${s.title}</span>
+            <span class="optimizer-savings">-${fmtNum(s.savings)} ${result.currencySymbol}</span>
+          </div>
+          <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">${s.description}</p>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  /* ----------------------------- Trust & Transparency ----------------------------- */
+  function renderTrustStrip() {
+    if (!prices) return;
+    const lastUpdatedEl = document.getElementById("trustLastUpdated");
+    const dataSourceEl = document.getElementById("trustDataSource");
+    const versionEl = document.getElementById("trustVersion");
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = new Date(prices.meta.lastUpdated).toLocaleDateString("az-AZ");
+    }
+    if (dataSourceEl) dataSourceEl.textContent = prices.meta.dataSource || "Bazar araşdırması";
+    if (versionEl) versionEl.textContent = "v" + (prices.meta.version || "1.0.0");
+  }
+
+  /* ----------------------------- Save & Share ----------------------------- */
+  function onSaveProject() {
+    if (!lastResult) {
+      showToast("Əvvəlcə hesablama aparın.", "error");
+      return;
+    }
+    if (!window.ICStorage) return;
+    const name = prompt("Layihəyə ad verin:", document.getElementById("projectName")?.value || "");
+    if (name === null) return; // user cancelled
+    window.ICStorage.saveProject(name, lastResult.input, lastResult);
+    renderSavedProjects();
+    showToast("Layihə uğurla saxlanıldı.", "success");
+  }
+
+  function onShareLink() {
+    if (!lastResult) {
+      showToast("Əvvəlcə hesablama aparın.", "error");
+      return;
+    }
+    if (!window.ICStorage) return;
+    const url = window.ICStorage.generateShareLink(lastResult.input);
+    if (!url) {
+      showToast("Paylaşım linki yaradıla bilmədi.", "error");
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => showToast("Link kopyalandı! İstədiyiniz yerdə paylaşa bilərsiniz.", "success"))
+        .catch(() => prompt("Linki kopyalayın:", url));
+    } else {
+      prompt("Linki kopyalayın:", url);
+    }
+  }
+
+  function renderSavedProjects() {
+    const container = document.getElementById("savedProjectsList");
+    if (!container || !window.ICStorage) return;
+    const projects = window.ICStorage.listProjects();
+    if (!projects.length) {
+      container.innerHTML = `<p class="text-muted" style="font-size:0.85rem;">Hələ saxlanılmış layihə yoxdur.</p>`;
+      return;
+    }
+    container.innerHTML = `
+      <div class="saved-projects-list">
+        ${projects
+          .map(
+            (p) => `
+          <div class="saved-project-row" data-id="${p.id}">
+            <div>
+              <strong>${p.name}</strong>
+              <div class="text-muted" style="font-size:0.78rem;">${new Date(p.savedAt).toLocaleString("az-AZ")}${
+                p.grandTotal ? " · " + fmtNum(p.grandTotal) + " ₼" : ""
+              }</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-ghost saved-project-load" style="padding:6px 12px; font-size:0.78rem;">Yüklə</button>
+              <button type="button" class="btn btn-ghost saved-project-delete" style="padding:6px 12px; font-size:0.78rem;">Sil</button>
+            </div>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+
+    container.querySelectorAll(".saved-project-load").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = e.target.closest(".saved-project-row").dataset.id;
+        const project = window.ICStorage.loadProject(id);
+        if (project) applyInputToForm(project.input);
+      });
+    });
+    container.querySelectorAll(".saved-project-delete").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = e.target.closest(".saved-project-row").dataset.id;
+        window.ICStorage.deleteProject(id);
+        renderSavedProjects();
+        showToast("Layihə silindi.", "info");
+      });
+    });
+  }
+
+  /**
+   * Fills the wizard's form fields from a saved/shared input object, then
+   * jumps to the Review step so the user can confirm and recalculate.
+   */
+  function applyInputToForm(input) {
+    if (!input) return;
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.value = val;
+    };
+    setVal("city", input.city);
+    setVal("landPrice", input.landPriceOverride);
+    const includeLandEl = document.getElementById("includeLand");
+    if (includeLandEl) includeLandEl.checked = !!input.includeLand;
+    toggleLandPriceField();
+    setVal("buildingType", input.buildingType);
+    setVal("foundationType", input.foundationType);
+    setVal("roofType", input.roofType);
+    setVal("floors", input.floors);
+    setVal("area", input.area);
+    setVal("finishLevel", input.finishLevel);
+
+    if (window.ICWizard) window.ICWizard.goToStep(6); // jump to "Yoxlama" (Review)
+    document.getElementById("wizardPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    showToast("Layihə məlumatları dolduruldu — yoxlayıb hesablaya bilərsiniz.", "success");
+  }
+
+  function prefillFromShareLink() {
+    if (!window.ICStorage) return;
+    const shared = window.ICStorage.readShareLinkFromUrl();
+    if (shared) applyInputToForm(shared);
   }
 })();
