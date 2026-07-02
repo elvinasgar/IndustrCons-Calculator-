@@ -3,7 +3,9 @@
     "currency": "AZN",
     "currencySymbol": "₼",
     "lastUpdated": "2026-07-01",
-    "version": "1.0.0",
+    "version": "2.0.0",
+    "dataSource": "Bazar araşdırması, podratçı sorğuları və tikinti materialları təchizatçılarının orta qiymətləri (Azərbaycan, 2026)",
+    "accuracyRange": 0.10,
     "note": "Bütün qiymətlər təxmini bazar dəyərləridir. Bu fayl istənilən zaman redaktə edilə bilər — kodu dəyişmək lazım deyil."
   },
 
@@ -123,5 +125,19 @@
     "tilesM2": "m²",
     "steelKg": "kq",
     "waterproofingM2": "m²"
+  },
+
+  "materialMeta": {
+    "_comment": "Material Qiymət Mərkəzi üçün əlavə məlumat. calculator.js bu bölməni istifadə etmir, ona görə strukturu sərbəst dəyişə bilərsiniz.",
+    "concreteM3": { "lastUpdated": "2026-06-15", "trend": "up", "changePct": 2.1 },
+    "rebarTon": { "lastUpdated": "2026-06-20", "trend": "up", "changePct": 4.5 },
+    "cementBags": { "lastUpdated": "2026-06-10", "trend": "stable", "changePct": 0 },
+    "sandM3": { "lastUpdated": "2026-06-01", "trend": "down", "changePct": -1.8 },
+    "gravelM3": { "lastUpdated": "2026-06-01", "trend": "stable", "changePct": 0.3 },
+    "brickPcs": { "lastUpdated": "2026-05-28", "trend": "up", "changePct": 1.2 },
+    "paintLiters": { "lastUpdated": "2026-06-18", "trend": "down", "changePct": -2.4 },
+    "tilesM2": { "lastUpdated": "2026-06-22", "trend": "stable", "changePct": 0.1 },
+    "steelKg": { "lastUpdated": "2026-06-25", "trend": "up", "changePct": 3.7 },
+    "waterproofingM2": { "lastUpdated": "2026-06-05", "trend": "stable", "changePct": 0.5 }
   }
 }
