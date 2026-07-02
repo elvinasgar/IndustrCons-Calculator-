@@ -70,8 +70,9 @@
 
     <nav id="navMenu" class="nav-menu" aria-label="Əsas naviqasiya">
       <a href="#calculator">Kalkulyator</a>
-      <a href="#dashboard">Dashboard</a>
+      <a href="#materials">Materiallar</a>
       <a href="#tools">Alətlər</a>
+      <a href="#premium">Premium</a>
       <a href="#about">Haqqımızda</a>
       <a href="#community">İcma</a>
       <a href="#contact">Əlaqə</a>
@@ -100,7 +101,7 @@
         <p class="hero-desc">IndustrCons — Azərbaycanda tikinti layihələri üçün xərc smetası, material hesablaması və mühəndislik dəstəyini bir platformada birləşdirir. Saniyələr içində dəqiq nəticə, professional PDF hesabat.</p>
         <div class="hero-actions">
           <a href="#calculator" class="btn btn-primary">İndi Hesabla</a>
-          <a href="#dashboard" class="btn btn-ghost">Dashboard-a bax</a>
+          <a href="#dashboard-info" class="btn btn-ghost">Dashboard-a bax</a>
         </div>
         <div class="hero-stats">
           <div class="hero-stat"><div class="num">16+</div><div class="label">xərc kateqoriyası</div></div>
@@ -162,65 +163,130 @@
     </div>
   </section>
 
-  <!-- ============================== CALCULATOR ============================== -->
+  <!-- ============================== CALCULATOR / WIZARD ============================== -->
   <section class="section section--alt" id="calculator">
     <div class="container">
-      <span class="eyebrow">Smeta Kalkulyatoru</span>
+      <span class="eyebrow">Smeta Sihirbazı</span>
       <h2 class="section-heading">Tikinti dəyərinizi hesablayın</h2>
-      <p class="section-sub">Bina parametrlərini daxil edin — sistem material qiymət bazasına əsaslanaraq dəqiq smeta hazırlayacaq.</p>
+      <p class="section-sub">7 sadə addımda layihənizi təsvir edin — sistem material qiymət bazasına əsaslanaraq dəqiq smeta hazırlayacaq.</p>
 
       <div class="calc-layout">
-        <div class="panel" data-animate>
-          <h3 class="panel-title">Bina Parametrləri <span class="tag">FORM</span></h3>
+        <div class="panel" id="wizardPanel" data-animate>
+          <h3 class="panel-title">Bina Parametrləri <span class="tag">WIZARD</span></h3>
+
+          <div class="wizard-progress" id="wizardProgress"></div>
+
           <form id="calculatorForm">
-            <div class="form-grid">
-              <div class="field">
-                <label for="area">Tikinti sahəsi (m²)</label>
-                <input type="number" id="area" min="10" step="1" placeholder="200" required />
-              </div>
-              <div class="field">
-                <label for="floors">Mərtəbə sayı</label>
-                <input type="number" id="floors" min="1" step="1" placeholder="2" required />
-              </div>
-              <div class="field">
-                <label for="buildingType">Bina növü</label>
-                <select id="buildingType" required></select>
-              </div>
-              <div class="field">
-                <label for="finishLevel">Tamamlama səviyyəsi</label>
-                <select id="finishLevel" required></select>
-              </div>
-              <div class="field">
-                <label for="foundationType">Təməl növü</label>
-                <select id="foundationType" required></select>
-              </div>
-              <div class="field">
-                <label for="roofType">Dam növü</label>
-                <select id="roofType" required></select>
-              </div>
+
+            <!-- STEP 1: Layihənin Yeri -->
+            <div class="wizard-step">
+              <h4 class="wizard-step-title">1. Layihənin Yeri</h4>
               <div class="field">
                 <label for="city">Şəhər / Region</label>
                 <select id="city" required></select>
+              </div>
+              <div class="wizard-nav">
+                <span></span>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
+            </div>
+
+            <!-- STEP 2: Torpaq Məlumatı -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">2. Torpaq Məlumatı</h4>
+              <div class="field field-checkbox">
+                <input type="checkbox" id="includeLand" checked />
+                <label for="includeLand" style="font-weight:500;">Torpaq dəyərini smetaya daxil et</label>
               </div>
               <div class="field" id="landPriceWrap">
                 <label for="landPrice">Torpaq qiyməti (₼/m²) — redaktə edilə bilər</label>
                 <input type="number" id="landPrice" min="0" step="1" />
               </div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
             </div>
 
-            <div class="field field-checkbox" style="margin-top:18px;">
-              <input type="checkbox" id="includeLand" checked />
-              <label for="includeLand" style="font-weight:500;">Torpaq dəyərini smetaya daxil et</label>
+            <!-- STEP 3: Bina Növü -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">3. Bina Növü</h4>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="buildingType">Bina növü</label>
+                  <select id="buildingType" required></select>
+                </div>
+                <div class="field">
+                  <label for="foundationType">Təməl növü</label>
+                  <select id="foundationType" required></select>
+                </div>
+                <div class="field">
+                  <label for="roofType">Dam növü</label>
+                  <select id="roofType" required></select>
+                </div>
+              </div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
             </div>
 
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Hesabla</button>
-              <button type="button" id="resetBtn" class="btn btn-ghost">Sıfırla</button>
+            <!-- STEP 4: Mərtəbə Sayı -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">4. Mərtəbə Sayı</h4>
+              <div class="field">
+                <label for="floors">Mərtəbə sayı</label>
+                <input type="number" id="floors" min="1" step="1" placeholder="2" required />
+              </div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
             </div>
+
+            <!-- STEP 5: Sahə -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">5. Sahə</h4>
+              <div class="field">
+                <label for="area">Tikinti sahəsi (m² — hər mərtəbə üçün)</label>
+                <input type="number" id="area" min="10" step="1" placeholder="200" required />
+              </div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
+            </div>
+
+            <!-- STEP 6: Tamamlama Səviyyəsi -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">6. Tamamlama Səviyyəsi</h4>
+              <div class="field">
+                <label for="finishLevel">Tamamlama səviyyəsi</label>
+                <select id="finishLevel" required></select>
+              </div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="button" class="btn btn-primary wizard-next">İrəli</button>
+              </div>
+            </div>
+
+            <!-- STEP 7: Yoxlama (Review) -->
+            <div class="wizard-step" hidden>
+              <h4 class="wizard-step-title">7. Yoxlama</h4>
+              <p class="text-muted" style="font-size:0.85rem; margin-bottom:14px;">Seçimlərinizi yoxlayın. Dəyişiklik etmək üçün "Dəyiş" düyməsinə basın.</p>
+              <div id="wizardReviewSummary" class="wizard-review-list"></div>
+              <div class="wizard-nav">
+                <button type="button" class="btn btn-ghost wizard-back">Geri</button>
+                <button type="submit" class="btn btn-primary">Hesabla</button>
+              </div>
+            </div>
+
           </form>
+
+          <button type="button" id="resetBtn" class="btn btn-ghost btn-block" style="margin-top:14px;">Sihirbazı Sıfırla</button>
         </div>
 
-        <!-- ============================== RESULTS / DASHBOARD ============================== -->
+        <!-- ============================== RESULTS / DASHBOARD ("STEP 8: NƏTİCƏ") ============================== -->
         <div id="resultsSection" data-animate>
           <div id="dashboard">
             <div class="stat-cards">
@@ -243,6 +309,26 @@
                   <span id="landCost" class="text-muted" style="color:var(--text-muted)">0 ₼</span>
                 </div>
               </div>
+            </div>
+
+            <!-- ============================== ENGINEERING ACCURACY ============================== -->
+            <div class="panel" style="margin-bottom:22px;">
+              <h3 class="panel-title">Mühəndislik Dəqiqliyi <span class="tag">±10%</span></h3>
+              <div class="accuracy-range-box">
+                <div>
+                  <div class="text-muted" style="font-size:0.8rem;">Minimum</div>
+                  <div id="rangeLow" style="font-family:var(--font-mono); font-weight:700;">0 ₼</div>
+                </div>
+                <div style="text-align:center;">
+                  <div class="text-muted" style="font-size:0.8rem;">Ən dəqiq təxmin</div>
+                  <div id="rangeMid" style="font-family:var(--font-mono); font-weight:700; color:var(--primary); font-size:1.15rem;">0 ₼</div>
+                </div>
+                <div style="text-align:right;">
+                  <div class="text-muted" style="font-size:0.8rem;">Maksimum</div>
+                  <div id="rangeHigh" style="font-family:var(--font-mono); font-weight:700;">0 ₼</div>
+                </div>
+              </div>
+              <ul id="assumptionsList" class="assumptions-list"></ul>
             </div>
 
             <div class="charts-grid">
@@ -270,6 +356,29 @@
               </table>
             </div>
 
+            <!-- ============================== CONSTRUCTION TIMELINE ============================== -->
+            <div class="panel" style="margin-bottom:22px;">
+              <h3 class="panel-title">Tikinti Cədvəli <span class="tag" id="timelineTotalTag">—</span></h3>
+              <div id="timelineList" class="timeline-list"></div>
+              <p class="text-muted" style="font-size:0.8rem; margin-top:12px;">Bu cədvəl planlaşdırma məqsədli ümumi göstəricidir — dəqiq iş qrafiki podratçı ilə razılaşdırılmalıdır.</p>
+            </div>
+
+            <!-- ============================== BUDGET OPTIMIZER ============================== -->
+            <div class="panel" style="margin-bottom:22px;">
+              <h3 class="panel-title">Büdcə Optimallaşdırıcısı <span class="tag">QƏNAƏT</span></h3>
+              <div id="optimizerList" class="optimizer-list"></div>
+            </div>
+
+            <!-- ============================== SAVE & SHARE ============================== -->
+            <div class="panel" style="margin-bottom:22px;">
+              <h3 class="panel-title">Saxla və Paylaş</h3>
+              <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <button type="button" id="saveProjectBtn" class="btn btn-ghost">💾 Layihəni Saxla</button>
+                <button type="button" id="shareLinkBtn" class="btn btn-ghost">🔗 Linklə Paylaş</button>
+              </div>
+              <div id="savedProjectsList" style="margin-top:18px;"></div>
+            </div>
+
             <!-- ============================== REPORT FORM ============================== -->
             <div class="panel">
               <h3 class="panel-title">Smeta Hesabatı (PDF) <span class="tag">REPORT</span></h3>
@@ -291,6 +400,16 @@
     </div>
   </section>
 
+  <!-- ============================== MATERIAL PRICE CENTER ============================== -->
+  <section class="section" id="materials">
+    <div class="container">
+      <span class="eyebrow">Material Qiymət Mərkəzi</span>
+      <h2 class="section-heading">Cari Material Qiymətləri</h2>
+      <p class="section-sub">Kalkulyatorun istifadə etdiyi bütün material qiymətləri, son yenilənmə tarixi və bazar trendi ilə birlikdə.</p>
+      <div id="materialPriceCenter" style="margin-top:28px;"></div>
+    </div>
+  </section>
+
   <!-- ============================== DASHBOARD ANCHOR INFO ============================== -->
   <section class="section" id="dashboard-info">
     <div class="container">
@@ -299,6 +418,7 @@
       <p class="section-sub">Hesablama edildikdən sonra yuxarıdakı panel real-vaxt dashboard-a çevrilir: ümumi dəyər, m² başına xərc, material payları və interaktiv qrafiklər avtomatik yaranır.</p>
     </div>
   </section>
+
 
   <!-- ============================== TOOLS / FUTURE MODULES ============================== -->
   <section class="section section--alt" id="tools">
@@ -314,6 +434,48 @@
         <div class="tool-card" data-animate><span class="badge">Tezliklə</span><h3>🏠 Əmlak Elanları</h3><p>Tikinti üçün torpaq sahələri və hazır obyektlər.</p></div>
         <div class="tool-card" data-animate><span class="badge">Tezliklə</span><h3>👷 Mühəndis Cəmiyyəti</h3><p>Peşəkarlar üçün forum və təcrübə mübadiləsi.</p></div>
         <div class="tool-card" data-animate><span class="badge">Tezliklə</span><h3>🤖 AI Köməkçi</h3><p>Layihəniz üzrə suallara real-vaxt AI dəstəyi.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== PREMIUM FEATURES (LOCKED) ============================== -->
+  <section class="section" id="premium">
+    <div class="container">
+      <span class="eyebrow">Premium</span>
+      <h2 class="section-heading">Gələcək Premium Xüsusiyyətlər</h2>
+      <p class="section-sub">Bu funksiyalar hazırlanma mərhələsindədir və gələcəkdə ödənişli plan daxilində aktivləşəcək.</p>
+
+      <div class="tool-grid" style="margin-top:32px;">
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>🤖 AI Köməkçi (Tam versiya)</h3>
+          <p>Layihəniz üzrə suallara real-vaxt, tam süni intellekt dəstəyi (backend tələb edir).</p>
+        </div>
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>📊 BOQ Excel İxracı</h3>
+          <p>Material siyahısını (Bill of Quantities) birbaşa Excel formatında ixrac edin.</p>
+        </div>
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>🦺 HSE Sənədləşdirmə Generatoru</h3>
+          <p>İş təhlükəsizliyi və sağlamlıq sənədlərini avtomatik hazırlayın.</p>
+        </div>
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>📄 Tikinti Sənəd Şablonları</h3>
+          <p>Müqavilə, akt və digər standart sənəd şablonları kitabxanası.</p>
+        </div>
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>☁️ Bulud Layihə Saxlama</h3>
+          <p>Layihələrinizi bütün cihazlarınızdan əlçatan buludda saxlayın.</p>
+        </div>
+        <div class="tool-card tool-card--locked" data-animate>
+          <span class="badge badge--premium">🔒 Premium</span>
+          <h3>👥 Komanda Əməkdaşlığı</h3>
+          <p>Komanda üzvləri ilə eyni layihə üzərində birlikdə işləyin.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -391,6 +553,30 @@
     </div>
   </section>
 
+  <!-- ============================== TRUST & TRANSPARENCY ============================== -->
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="trust-strip" id="trustStrip">
+        <div class="trust-item">
+          <span class="trust-label">Son yenilənmə</span>
+          <span class="trust-value" id="trustLastUpdated">—</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-label">Məlumat mənbəyi</span>
+          <span class="trust-value" id="trustDataSource">—</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-label">Versiya</span>
+          <span class="trust-value" id="trustVersion">—</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-label">Qeyd-şərt</span>
+          <span class="trust-value">Bu nəticələr yalnız təxminidir, rəsmi maliyyə təklifi sayılmır.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <!-- ============================== FOOTER ============================== -->
@@ -405,7 +591,9 @@
         <h4>Platforma</h4>
         <ul>
           <li><a href="#calculator">Kalkulyator</a></li>
-          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#materials">Materiallar</a></li>
+          <li><a href="#dashboard-info">Dashboard</a></li>
+          <li><a href="#premium">Premium</a></li>
           <li><a href="#tools">Alətlər</a></li>
           <li><a href="#community">İcma</a></li>
         </ul>
@@ -443,6 +631,12 @@
 <script src="calculator.js" defer></script>
 <script src="charts.js" defer></script>
 <script src="pdf.js" defer></script>
+<script src="timeline.js" defer></script>
+<script src="optimizer.js" defer></script>
+<script src="storage.js" defer></script>
+<script src="materials.js" defer></script>
+<script src="wizard.js" defer></script>
+<script src="assistant.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>
