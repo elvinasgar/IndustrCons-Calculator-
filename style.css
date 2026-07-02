@@ -636,6 +636,13 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
   display: flex; flex-direction: column;
   overflow: hidden;
 }
+/* Bug fix: the [hidden] attribute must win over the unconditional
+   `display: flex` above, otherwise the panel stays visible even after
+   closing it. #id + [hidden] has higher specificity than the plain
+   class rule, so this guarantees the panel actually disappears. */
+#icAssistantPanel[hidden] {
+  display: none !important;
+}
 .ic-assistant-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 14px 16px;
