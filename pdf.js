@@ -166,6 +166,35 @@
     );
     y += 30;
 
+    // ---- Engineering Accuracy & Assumptions ----
+    if (Array.isArray(result.assumptions) && result.assumptions.length) {
+      doc.setTextColor(20, 20, 20);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(pdfSafe(`Muhendislik Deqiqliyi (+/-${Math.round((result.accuracyRange || 0.1) * 100)}%)`), margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...BRAND.grayText);
+      doc.text(
+        pdfSafe(`Aralıq: ${fmtMoney(result.rangeLow, "AZN")} — ${fmtMoney(result.rangeHigh, "AZN")}`),
+        margin,
+        y
+      );
+      y += 6;
+      doc.setTextColor(20, 20, 20);
+      result.assumptions.forEach((line) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        const wrapped = doc.splitTextToSize(pdfSafe("• " + line), pageWidth - margin * 2);
+        doc.text(wrapped, margin, y);
+        y += wrapped.length * 4.4;
+      });
+      y += 6;
+    }
+
     // ---- Breakdown table ----
     doc.setTextColor(20, 20, 20);
     doc.setFont("helvetica", "bold");
@@ -223,6 +252,64 @@
       y = 20;
     }
 
+    // ---- Construction Timeline ----
+    if (result.timeline && Array.isArray(result.timeline.phases)) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(pdfSafe(`Tikinti Cedveli (~${result.timeline.totalMonths} ay)`), margin, y);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      result.timeline.phases.forEach((p) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setTextColor(...BRAND.grayText);
+        doc.text(pdfSafe(p.label), margin, y);
+        doc.setTextColor(20, 20, 20);
+        doc.text(
+          pdfSafe(`${p.weeks} hefte (${p.startWeek}-${p.endWeek})`),
+          pageWidth - margin,
+          y,
+          { align: "right" }
+        );
+        y += 5.2;
+      });
+      y += 6;
+    }
+
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // ---- Budget Optimizer suggestions ----
+    if (Array.isArray(result.optimizerSuggestions) && result.optimizerSuggestions.length) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(pdfSafe("Byudce Qenaet Tovsiyeleri"), margin, y);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      result.optimizerSuggestions.forEach((s) => {
+        if (y > 265) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setTextColor(20, 20, 20);
+        doc.text(pdfSafe(s.title), margin, y);
+        doc.setTextColor(30, 120, 70);
+        doc.text(pdfSafe(`-${fmtMoney(s.savings, "AZN")}`), pageWidth - margin, y, { align: "right" });
+        y += 4.6;
+        doc.setTextColor(...BRAND.grayText);
+        const wrapped = doc.splitTextToSize(pdfSafe(s.description), pageWidth - margin * 2);
+        doc.text(wrapped, margin, y);
+        y += wrapped.length * 4.2 + 3;
+      });
+      y += 4;
+    }
+
     // ---- Notes ----
     if (customer.notes) {
       doc.setFont("helvetica", "bold");
@@ -260,14 +347,18 @@
     }
 
     // ---- Disclaimer (footer) ----
-    const disclaimerY = 285;
+    const disclaimerY = 280;
     doc.setFontSize(7);
     doc.setTextColor(140, 140, 140);
+    const versionLine = pdfSafe(
+      `IndustrCons Kalkulyator v${(result.pricesVersion || "2.0.0")} · Son yenilenme: ${dateStr}`
+    );
+    doc.text(versionLine, margin, disclaimerY);
     const disclaimer = pdfSafe(
       "Qeyd: Bu sənəd yalnız təxmini smeta xarakteri daşıyır. Real qiymətlər material bazarı, podratçı və layihə xüsusiyyətlərindən asılı olaraq dəyişə bilər. IndustrCons rəsmi müqavilə öhdəliyi deyil."
     );
     const discLines = doc.splitTextToSize(disclaimer, pageWidth - margin * 2);
-    doc.text(discLines, margin, disclaimerY);
+    doc.text(discLines, margin, disclaimerY + 4);
 
     const fileName = `IndustrCons-Smeta-${(customer.projectName || "layihe").replace(
       /\s+/g,
