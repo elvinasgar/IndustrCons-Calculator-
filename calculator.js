@@ -109,6 +109,11 @@
 
     const grandTotal = constructionCost + landCost;
 
+    // Engineering accuracy range (±10% by default, configurable via prices.meta.accuracyRange)
+    const accuracyRange = prices.meta.accuracyRange ?? 0.10;
+    const rangeLow = grandTotal * (1 - accuracyRange);
+    const rangeHigh = grandTotal * (1 + accuracyRange);
+
     return {
       input,
       effectiveRatePerM2: effectiveRate,
@@ -120,10 +125,50 @@
       breakdown,
       breakdownTotal,
       materials,
+      accuracyRange,
+      rangeLow,
+      rangeHigh,
       currency: prices.meta.currency,
       currencySymbol: prices.meta.currencySymbol,
       generatedAt: new Date().toISOString()
     };
+  }
+
+  /**
+   * Produces a plain-language explanation of how the estimate was derived,
+   * used in both the Results panel and the PDF report ("Engineering Accuracy").
+   * Pure function — no DOM access.
+   */
+  function getAssumptions(input, prices, result) {
+    const finish = prices.finishLevels[input.finishLevel];
+    const foundation = prices.foundationTypes[input.foundationType];
+    const roof = prices.roofTypes[input.roofType];
+    const cityMult = prices.cityMultipliers[input.city] ?? 1;
+
+    return [
+      `Əsas m² qiyməti "${input.buildingType}" bina növü üçün bazar ortalamasına əsaslanır.`,
+      `"${finish?.label || input.finishLevel}" tamamlama səviyyəsi əsas qiyməti ${finish ? finish.multiplier.toFixed(2) : "1.00"}× əmsalı ilə dəyişir.`,
+      `"${foundation?.label || input.foundationType}" təməl növü ${foundation ? foundation.multiplier.toFixed(2) : "1.00"}× əmsalı tətbiq edir.`,
+      `"${roof?.label || input.roofType}" dam növü ${roof ? roof.multiplier.toFixed(2) : "1.00"}× əmsalı tətbiq edir.`,
+      `${input.city} regionu üçün ${cityMult.toFixed(2)}× regional əmsal tətbiq olunub.`,
+      `${input.floors} mərtəbəli bina üçün struktur gücləndirmə əmsalı əlavə olunub.`,
+      `Xərc bölgüsü kateqoriyaları (təməl, beton, elektrik və s.) sənaye standartı faiz nisbətlərinə əsasən ayrılıb.`,
+      `Nəticə ±${Math.round((result?.accuracyRange ?? prices.meta.accuracyRange ?? 0.1) * 100)}% dəqiqlik aralığında təxmindir — dəqiq qiymət üçün mühəndis ölçməsi tövsiyə olunur.`
+    ];
+  }
+
+  /**
+   * Re-runs estimate() with an alternate finish level (or other override) to
+   * support the Budget Optimizer's "what if" savings comparisons.
+   * Returns null if the override key doesn't exist in prices.
+   */
+  function estimateWithOverride(input, prices, overrides) {
+    const modifiedInput = Object.assign({}, input, overrides);
+    try {
+      return estimate(modifiedInput, prices);
+    } catch (e) {
+      return null;
+    }
   }
 
   const BREAKDOWN_LABELS_AZ = {
@@ -160,6 +205,8 @@
   global.ICCalculator = {
     loadPrices,
     estimate,
+    getAssumptions,
+    estimateWithOverride,
     BREAKDOWN_LABELS_AZ,
     MATERIAL_LABELS_AZ
   };
